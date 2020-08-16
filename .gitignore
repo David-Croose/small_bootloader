@@ -84,3 +84,7 @@ GTAGS
 *.orig
 *~
 \#*#
+
+# others
+*.dis
+config.h

@@ -4,6 +4,8 @@
  * Description:boot routine for JZ2440 board(CPU:S3C2440A,400MHz,ARM920T;SDRAM:64MB;NANDFLASH:256MB;NORFLASH:2MB;etc
  */
 
+#include "config.h"
+
 /**
  * watch dog timer register
  */
@@ -24,7 +26,13 @@
 #define  CLKDIV         0x4C000014
 #define  MPLLCON        0x4C000004
 
-#define CONFIG_APP_ADDR	0x31400000
+#ifndef CONFIG_APP_ADDR
+#define CONFIG_APP_ADDR	0x30000000
+#endif
+
+#ifndef CONFIG_COPY_BYTES
+#define CONFIG_COPY_BYTES	(600 * 1024)
+#endif
 
 .text
 .section .boot
@@ -128,9 +136,22 @@ Reset:
 	 */
 	ldr		sp, =0x34000000
 	bl		nand_boot_init
+calc_pages:
+	ldr		r0, =CONFIG_COPY_BYTES		/* r0 = image_bytes */
+	mov		r3, #0
+	ldr		r1, =0x7FF
+	and		r1, r0, r1
+	cmp		r1, #0
+	movne	r3, #1			/* if (r0 % 2048) r3 = 1; else r3 = 0; */
+	mov		r0, r0, lsr#11	/* r0 = r0 / 2048 = total_pages */
+	cmp		r3, #0
+	addne	r0, r0, #1
+	cmp		r0, #131072		/* if (r0 > total_pages) hang() */
+	bgt		halt_loop
+	mov		r2, r0
+
 	ldr		r0, =4096
 	ldr		r1, =CONFIG_APP_ADDR
-	ldr		r2, =512			/* pages = image_bytes / bytes_per_page = 1MB / 2048 */
 	bl		nand_boot_copy2sdram
 
 	/**
