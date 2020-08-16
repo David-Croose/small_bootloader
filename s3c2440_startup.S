@@ -26,14 +26,6 @@
 #define  CLKDIV         0x4C000014
 #define  MPLLCON        0x4C000004
 
-#ifndef CONFIG_APP_ADDR
-#define CONFIG_APP_ADDR	0x30000000
-#endif
-
-#ifndef CONFIG_COPY_BYTES
-#define CONFIG_COPY_BYTES	(600 * 1024)
-#endif
-
 .text
 .section .boot
 .global _start
